@@ -1,3 +1,5 @@
+# scScope is a deep-learning based approach designed to identify cell-type composition from large-scale scRNA-seq profiles.
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -26,26 +28,23 @@ def train(train_data_set,
           ):
     '''
     scScope training:
-
-    scScope is a deep-learning based approach designed to accurately and rapidly identify cell-type composition and 
-    transcriptional state from noisy single-cell gene-expression profiles containing dropout events and scale to 
-    millions of cells.
+	  This function is used to train the scScope model on gene expression data
 
     Parameters:
 
-      train_data_set:       gene expression matrix in shape of n * m where n is the number of cells and m is the number of genes.
-      latent_code_dim:      the feature dimension outputted by scScope.
+      train_data_set:       gene expression matrix of dim n * m; n = number of cells, m = number of genes.
+      latent_code_dim:      feature dimension outputted by scScope.
       batch_size:           number of cells used in each training iteration.
       max_epoch:            maximal epoch used in training.
       epoch_per_check:      step to display current loss.
       T:                    depth of recurrence used in deep learning framework.
       use_mask:             flag indicating whether to use only non-zero entries in calculating losses.
       learning_rate:        step length in gradient descending algorithm.
-      beta1:                the beta1 parameter in AdamOptimizer.
+      beta1:                beta1 parameter in AdamOptimizer.
       num_gpus:             number of gpus used for training in parallel.
       exp_batch_idx_input:  (optional) n * batch_num matrix in one-hot format, if provided, experimental batch ids are used for batch correction.
-      encoder_layers:       the network structure for encoder layers of the autoencoder. for instance [64,128] means adding two layers with 64 and 128 nodes between the input and hidden features
-      decoder_layers:       the network structure for decoder layers of the autoencoder. for instance [64,128] means adding two layers with 64 and 128 nodes between the hidden feature and the output layer
+      encoder_layers:       network structure for encoder layers of the autoencoder; e.g. [64,128] means adding two layers with 64 and 128 nodes between the input and hidden features
+      decoder_layers:       network structure for decoder layers of the autoencoder; e.g. [64,128] means adding two layers with 64 and 128 nodes between the hidden feature and the output layer
 
 
 
@@ -83,7 +82,7 @@ def train(train_data_set,
 
         opt = tf.train.AdamOptimizer(learning_rate, beta1=beta1)
 
-        # Calculate the gradients on models deployed on each GPU then summarized the gradients.
+        # Calculate the gradients on models deployed on each GPU then summarize the gradients.
         tower_grads = []
         tower_grads2 = []
 
@@ -149,7 +148,7 @@ def train(train_data_set,
 
         init = tf.global_variables_initializer()
 
-        # Configuration of GPU.
+        # Configuration of GPUs.
         config_ = tf.ConfigProto()
 
         config_.gpu_options.allow_growth = True
@@ -236,14 +235,14 @@ def train(train_data_set,
 
 def predict(test_data, model, batch_effect=[]):
     '''
-    Feed forward to make predication using learned scScope model.
+    Make predications using the learned scScope model.
 
     Parameter:
-        test_data:      input gene expression matrix
+        test_data:      input gene expression matrix.
         model:          pre-trained scScope model.
 
     Output:
-        latent_fea:             scScope features output
+        latent_fea:             scScope features output.
         output_val:             gene expressions with imputations.
         predicted_batch_effect: batch effects inferenced by scScope, if experimental batches exist.
 
@@ -276,10 +275,10 @@ def predict(test_data, model, batch_effect=[]):
 
 def Inference(input_d, latent_code_dim, T, encoder_layers, decoder_layer, exp_batch_idx=[], re_use=False):
     '''
-    The deep neural network structure of scScope
+    The deep neural network structure of scScope.
 
     Parameters:
-        input_d:            gene expression matrix of n*m where n is the number of cell and m is the number of genes.
+        input_d:            gene expression matrix of dim n * m; n = number of cells, m = number of genes.
         latent_code_dim:    the dimension of features outputted by scScope.
         T:                  number of recurrent structures used in deep learning framework.
         encoder_layers:     the network structure for encoder layers of the autoencoder.
@@ -537,13 +536,15 @@ def scalable_cluster(latent_code,
                      ):
     '''
     Scalable  cluster:
-    To leverage the power of graph clustering on analyzing these large-scale data, we designed a scalable clustering strategy by combining k-means and PhenoGraph.
-    In detail, we divided cells into M (kmeans_num) groups with equal size and performed K-means (cluster_num) clustering on each group independently. The whole dataset was split to M×K clusters and we only input the cluster centroids into PhenoGraph for graph clustering. Finally, each cell was assigned to graph clusters according to the cluster labels of its nearest centroids.
+    To perform graph clustering on large-scale data, we designed a scalable clustering strategy by combining k-means and PhenoGraph.
+    Briefly, we divide cells into M (kmeans_num) groups of equal size and perform K-means (cluster_num) clustering on each group independently. 
+	The whole dataset is split to M×K clusters and we only input the cluster centroids into PhenoGraph for graph clustering. 
+	Finally, each cell is assigned to graph clusters according to the cluster labels of its nearest centroids.
 
     Parameters:
 
-        latent_code:    n*m matrix of gene expression levels or representations of gene expression. n is cell size and m is gene or representation size.
-        kmeans_num:     the number of independent K-means clusterings used. This is also the subset number.
+        latent_code:    n*m matrix; n = number of cells, m = dimension of feature representation.
+        kmeans_num:     number of independent K-means clusterings used. This is also the subset number.
         cluster_num:    cluster number for each K-means clustering. This is also the "n_clusters" in KMeans function in sklearn package.
         display_step:   displaying the process of K-means clustering.
         phenograh_neighbor: "k" parameter in PhenoGraph package.

@@ -9,7 +9,7 @@ install_requires = [
     'tensorflow-gpu>=1.2.1'
 ]
 setup(name='scScope',
-      version='0.1.4',
+      version='0.1.5',
       description='scScope is a deep-learning based approach for single cell RNA-seq analysis. ',
       url='https://github.com/AltschulerWu-Lab/scScope',
       author=['Yue Deng', 'Feng Bao'],

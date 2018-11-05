@@ -1,3 +1,5 @@
+# scScope is a deep-learning based approach designed to identify cell-type composition from large-scale scRNA-seq profiles.
+
 from __future__ import absolute_import
 from __future__ import division
 from __future__ import print_function
@@ -15,7 +17,7 @@ def train_large(train_data_path,
                 cell_size,
                 gene_size,
                 latent_code_dim,
-                exp_batch_size=1,
+                exp_batch_idx=0,
                 use_mask=True,
                 batch_size=64,
                 max_epoch=100,
@@ -29,10 +31,7 @@ def train_large(train_data_path,
                 ):
     '''
     scScope training:
-
-    scScope is a deep-learning based approach designed to accurately and rapidly identify cell-type composition and
-    transcriptional state from noisy single-cell gene-expression profiles containing dropout events and scale to
-    millions of cells.
+	  This function is used to train the scScope model on gene expression data
 
     Parameters:
 
@@ -41,7 +40,7 @@ def train_large(train_data_path,
       file_num:             Number of gene expression files in "train_data_path".
       cell_size:            Cell numbers in each expression file. All files should include the same number of cells.
       gene_size:            Gene numbers in each expression file. All files should include the same number of genes.
-      exp_batch_size:        Number of experimental batches in the sequencing. if exp_batch_idx = 0, no batch information need to provide.
+      exp_batch_idx:        Number of experimental batches in the sequencing. if exp_batch_idx = 0, no batch information need to provide.
                                                     Otherwise, experimental batch labels are stored in "exp_batch_label_0.npy", "exp_batch_label_1.npy", ..., corresponding to each data batch file.
                                                     In each file, experimental batch labels are stored in an n * batch_num matrix in one-hot format. Experimental batch labels and data batch files
                                                     are in the same directory.
@@ -73,7 +72,7 @@ def train_large(train_data_path,
     batch_size = int(batch_size * num_gpus)
     learning_rate = learning_rate * num_gpus
 
-    if exp_batch_size == 1:
+    if exp_batch_idx == 0:
         exp_batch_idx_input = np.zeros((cell_size, 1))
         consider_exp_batch = False
     else:
@@ -84,7 +83,7 @@ def train_large(train_data_path,
         train_data = tf.placeholder(
             tf.float32, [batch_size, gene_size])
         exp_batch_idx = tf.placeholder(tf.float32,
-                                       [batch_size, exp_batch_size])
+                                       [batch_size, exp_batch_idx])
 
         # Create an optimizer that performs gradient descent.
         opt = tf.train.AdamOptimizer(learning_rate, beta1=beta1)
@@ -173,11 +172,9 @@ def train_large(train_data_path,
 
                 train_data_real_val = np.load(
                     train_data_path + '/batch_' + str(file_count) + '.npy')
-                if exp_batch_size > 1:
+                if exp_batch_idx > 0:
                     exp_batch_idx_input = np.load(
                         train_data_path + '/exp_batch_label_' + str(file_count) + '.npy')
-                else:
-                    exp_batch_idx_input = np.zeros((cell_size, 1))
 
                 total_data_size = np.shape(train_data_real_val)[0]
                 total_sample_list = list(range(total_data_size))
@@ -217,8 +214,8 @@ def train_large(train_data_path,
                     recon_error = np.linalg.norm(np.multiply(mask, layer_output_val) - np.multiply(
                         mask, train_data_real_val)) / np.linalg.norm(np.multiply(mask, train_data_real_val))
                     reconstruction_error.append(recon_error)
-                    # print("Finisheded epoch：" + str(step))
-                    # print('Current reconstruction error is: ' + str(recon_error))
+                    print("Finisheded epoch：" + str(step))
+                    print('Current reconstruction error is: ' + str(recon_error))
 
                     if len(reconstruction_error) >= 2:
                         if (abs(reconstruction_error[-1] - reconstruction_error[-2]) / reconstruction_error[-2] < 1e-3):
@@ -229,7 +226,7 @@ def train_large(train_data_path,
         test_data_holder = tf.placeholder(
             tf.float32, [None, gene_size])
         test_exp_batch_idx = tf.placeholder(
-            tf.float32, [None, exp_batch_size])
+            tf.float32, [None, exp_batch_idx])
 
         test_layer_out, test_latent_code, removed_batch_effect = Inference(
             test_data_holder, latent_code_dim, T, encoder_layers, decoder_layers, test_exp_batch_idx, re_use=True)
@@ -242,7 +239,7 @@ def train_large(train_data_path,
         model['removed_batch_effect'] = removed_batch_effect
 
         duration = time.time() - start
-        print('Finish training ' + str(file_num) + ' data batches after ' + str(
+        print('Finish training ' + str(len(train_data)) + ' samples after ' + str(
             step) + ' epochs. The total training time is ' +
             str(duration) + ' seconds.')
 
@@ -252,14 +249,14 @@ def train_large(train_data_path,
 def predict_large(train_data_path,
                   file_num,
                   model,
-                  exp_batch_size=0):
+                  exp_batch_idx=0):
     '''
     Output the latent feature and imputed sequence for large scale dataset after training the model.
 
     Parameters:
             train_data_path:    The same data path as in "train_large()".
             file_num:           Number of data files in train_data_path.
-            exp_batch_size:      Number of experimental batches in sequencing. If exp_batch_idx=0, the function is run without batch correction.
+            exp_batch_idx:      Number of experimental batches in sequencing. If exp_batch_idx=0, the function is run without batch correction.
             model:              The pre-trained model by "train_large()".
 
     Output:
@@ -274,7 +271,7 @@ def predict_large(train_data_path,
 
         train_data = np.load(
             train_data_path + '/batch_' + str(file_count) + '.npy')
-        if exp_batch_size > 0:
+        if exp_batch_idx > 0:
             batch_effect = np.load(
                 train_data_path + '/exp_batch_label_' + str(file_count) + '.npy')
         else:
@@ -289,8 +286,8 @@ def predict_large(train_data_path,
 
 def predict(test_data, model, batch_effect=[]):
     '''
-    Feed forward to make predication using learned scScope model.
-
+    Make predications using the learned scScope model.
+	
     Parameter:
             test_data:      gene expression matrix need to make prediction.
             model:          pre-trained scScope model.
@@ -336,7 +333,7 @@ def Inference(input_d, latent_code_dim, T, encoder_layers, decoder_layer, exp_ba
     The deep neural network structure of scScope
 
     Parameters:
-            input_d:            gene expression matrix of n*m where n is the number of cell and m is the number of genes.
+			input_d:            gene expression matrix of dim n * m; n = number of cells, m = number of genes.
             latent_code_dim:    the dimension of features outputted by scScope.
             T:                  number of recurrent structures used in deep learning framework.
             encoder_layers:
@@ -588,17 +585,19 @@ def scalable_cluster(latent_code,
                      ):
     '''
     Scalable  cluster:
-    To leverage the power of graph clustering on analyzing these large-scale data, we designed a scalable clustering strategy by combining k-means and PhenoGraph.
-    In detail, we divided cells into M (kmeans_num) groups with equal size and performed K-means (cluster_num) clustering on each group independently. The whole dataset was split to M×K clusters and we only input the cluster centroids into PhenoGraph for graph clustering. Finally, each cell was assigned to graph clusters according to the cluster labels of its nearest centroids.
+    To perform graph clustering on large-scale data, we designed a scalable clustering strategy by combining k-means and PhenoGraph.
+    Briefly, we divide cells into M (kmeans_num) groups of equal size and perform K-means (cluster_num) clustering on each group independently. 
+	The whole dataset is split to M×K clusters and we only input the cluster centroids into PhenoGraph for graph clustering. 
+	Finally, each cell is assigned to graph clusters according to the cluster labels of its nearest centroids.
 
     Parameters:
 
-            latent_code:    n*m matrix of gene expression levels or representations of gene expression. n is cell size and m is gene or representation size.
-            kmeans_num:     the number of independent K-means clusterings used. This is also the subset number.
-            cluster_num:    cluster number for each K-means clustering. This is also the "n_clusters" in KMeans function in sklearn package.
-            display_step:   displaying the process of K-means clustering.
-            phenograh_neighbor: "k" parameter in PhenoGraph package.
-
+        latent_code:    n*m matrix; n = number of cells, m = dimension of feature representation.
+        kmeans_num:     number of independent K-means clusterings used. This is also the subset number.
+        cluster_num:    cluster number for each K-means clustering. This is also the "n_clusters" in KMeans function in sklearn package.
+        display_step:   displaying the process of K-means clustering.
+        phenograh_neighbor: "k" parameter in PhenoGraph package.
+		
     Output:
 
             label:          Cluster labels for input cells.
