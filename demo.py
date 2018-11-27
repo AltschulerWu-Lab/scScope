@@ -1,17 +1,17 @@
-
+'''The goal of this demo is to show how to identify cell subpopulations based on latent
+representations of gene expression learned by scScope.'''
 import scscope as DeepImpute
 import pandas as pd
 import phenograph
 import pickle
 from sklearn.metrics.cluster import adjusted_rand_score
 import numpy as np
+from sklearn.manifold import TSNE
+import matplotlib.pyplot as plt
+
 # For this demo we normalize data using scanpy which is not a required package for scScope.
 # To install, use: pip install scanpy
 import scanpy.api as sc
-from sklearn.manifold import TSNE
-import matplotlib.pyplot as plt
-# The goal of this demo is to show how to identify cell subpopulations based on latent
-# representations of gene expression learned by scScope.
 
 
 def RUN_MAIN():
@@ -46,11 +46,11 @@ def RUN_MAIN():
         DI_model = DeepImpute.train(
             gene_expression, latent_dim, T=2, batch_size=64, max_epoch=300, num_gpus=4)
 
-    # latent representations and imputed expressions
+    # 4. latent representations and imputed expressions
     latent_code, imputed_val, _ = DeepImpute.predict(
         gene_expression, DI_model)
 
-    # graph clustering
+    # 5. graph clustering
     if latent_code.shape[0] <= 10000:
         label, _, _ = phenograph.cluster(latent_code)
     else:
@@ -62,6 +62,8 @@ def RUN_MAIN():
 
     X_embedded = TSNE(n_components=2).fit_transform(latent_code)
 
+    # visualization of the subpopulation using tSNE
+    plt.figure()
     for i in range(5):
         idx = np.nonzero(label == i)[0]
         plt.scatter(X_embedded[idx, 0], X_embedded[idx, 1])
