@@ -218,14 +218,14 @@ To run your own data with default parameters, you can simply replace the `gene_e
 
 There many software packages available for performing single cell sequence analysis. We encourage readers to investigate these other resources:
 
-MAGIC: https://github.com/KrishnaswamyLab/MAGIC
-ZINB-WaVE: https://github.com/drisso/zinbwave
-SIMLR: https://github.com/bowang87/SIMLR_PY
-DCA: https://github.com/theislab/dca
-scVI: https://github.com/YosefLab/scVI
-PhenoGraph: https://github.com/jacoblevine/PhenoGraph
-Seurat: https://satijalab.org/seurat/
-Splatter: https://github.com/Oshlack/splatter-paper
+-MAGIC: https://github.com/KrishnaswamyLab/MAGIC
+-ZINB-WaVE: https://github.com/drisso/zinbwave
+-SIMLR: https://github.com/bowang87/SIMLR_PY
+-DCA: https://github.com/theislab/dca
+-scVI: https://github.com/YosefLab/scVI
+-PhenoGraph: https://github.com/jacoblevine/PhenoGraph
+-Seurat: https://satijalab.org/seurat/
+-Splatter: https://github.com/Oshlack/splatter-paper
 
 ## Copyright
 
