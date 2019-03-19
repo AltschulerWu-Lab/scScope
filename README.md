@@ -1,9 +1,9 @@
 # scScope
 
-scScope is a deep-learning based approach that can accurately and rapidly identify cell-type composition and transcriptional state from noisy single-cell gene-expression profiles containing dropout events and scale to millions of cells. 
+scScope is a deep-learning based approach that can accurately and rapidly identify cell-type composition and transcriptional state from noisy single-cell gene-expression profiles containing dropout events and scale to millions of cells. This work was published on *Nature Methods*: https://www.nature.com/articles/s41592-019-0353-7
 
 > Citation: 
-> Massive single-cell RNA-seq analysis and imputation via deep learning. Yue Deng\*, Feng Bao\*, Qionghai Dai, Lani F. Wu#, Steven J. Altschuler#
+> Scalable analysis of cell-type composition from single-cell transcriptomics using deep recurrent learning. Yue Deng\*, Feng Bao\*, Qionghai Dai, Lani F. Wu#, Steven J. Altschuler#, 2019, DOI: https://doi.org/10.1038/s41592-019-0353-7
 
 
 This readme file is an introduction to the scScope software package, implemented with Python and Tensorflow. 
