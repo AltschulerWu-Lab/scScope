@@ -33,13 +33,13 @@ This readme file is an introduction to the scScope software package, implemented
   ```
 ### Step 2. Install scScope
 ```terminal
-pip install scscope
+pip install scScope
 ```
 or download the package and 
 ```terminal
 python setup.py install
 ```
-Usually, it takes only several seconds to finish installation.
+Usually, it takes only several seconds to finish installation. If you want to run scScope on CPU, use "pip install scScope-cpu" to install scScope CPU version.
 
 ## Usage
 
@@ -99,7 +99,7 @@ where
             'removed_batch_effect':     correcting layer learning by scScope.
 
 ```
-
+If run on CPU, remove the "num_gpus" parameter.
 ### Make predictions:
 
 ```python
