@@ -202,7 +202,7 @@ def train(train_data_set,
                 recon_error = np.linalg.norm(np.multiply(mask, layer_output_val)-np.multiply(
                     mask, train_data_set))/np.linalg.norm(np.multiply(mask, train_data_set))
                 reconstruction_error.append(recon_error)
-                print("Finisheded epoch：" + str(step))
+                print("Finisheded epoch: " + str(step))
                 print('Current reconstruction error is: '+str(recon_error))
 
                 if len(reconstruction_error) >= 2:
